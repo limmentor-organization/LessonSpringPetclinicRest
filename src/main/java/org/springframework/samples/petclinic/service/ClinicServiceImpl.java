@@ -9,8 +9,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.orm.ObjectRetrievalFailureException;
+import org.springframework.samples.petclinic.model.Pet;
+import org.springframework.samples.petclinic.model.PetType;
 import org.springframework.samples.petclinic.model.Specialty;
 import org.springframework.samples.petclinic.model.Vet;
+import org.springframework.samples.petclinic.repository.PetRepository;
+import org.springframework.samples.petclinic.repository.PetTypeRepository;
 import org.springframework.samples.petclinic.repository.SpecialtyRepository;
 import org.springframework.samples.petclinic.repository.VetRepository;
 import org.springframework.stereotype.Service;
@@ -19,13 +23,48 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class ClinicServiceImpl implements ClinicService {
 
+	private PetRepository petRepository;
 	private VetRepository vetRepository;
 	private SpecialtyRepository specialtyRepository;
+	private PetTypeRepository petTypeRepository;
 
 	@Autowired
-	public ClinicServiceImpl(VetRepository vetRepository, SpecialtyRepository specialtyRepository) {
+	public ClinicServiceImpl(PetRepository petRepository, VetRepository vetRepository,
+			SpecialtyRepository specialtyRepository, PetTypeRepository petTypeRepository) {
+		this.petRepository = petRepository;
 		this.vetRepository = vetRepository;
 		this.specialtyRepository = specialtyRepository;
+		this.petTypeRepository = petTypeRepository;
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public Pet findPetById(int id) throws DataAccessException {
+		Pet pet = null;
+		try {
+			pet = petRepository.findById(id);
+		} catch (ObjectRetrievalFailureException | EmptyResultDataAccessException e) {
+			return null;
+		}
+		return pet;
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public Collection<Pet> findAllPets() throws DataAccessException {
+		return petRepository.findAll();
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public void savePet(Pet pet) throws DataAccessException {
+		petRepository.save(pet);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public void deletePet(Pet pet) throws DataAccessException {
+		petRepository.delete(pet);
 	}
 
 	@Override
@@ -62,6 +101,37 @@ public class ClinicServiceImpl implements ClinicService {
 	@Transactional
 	public void deleteVet(Vet vet) throws DataAccessException {
 		vetRepository.delete(vet);
+	}
+
+	@Override
+	public PetType findPetTypeById(int petTypeId) {
+		PetType petType = null;
+		try {
+			petType = petTypeRepository.findById(petTypeId);
+		} catch (ObjectRetrievalFailureException | EmptyResultDataAccessException e) {
+			return null;
+		}
+		return petType;
+	}
+
+	@Override
+	public Collection<PetType> findAllPetTypes() throws DataAccessException {
+		return petTypeRepository.findAll();
+	}
+
+	@Override
+	public Collection<PetType> findPetTypes() throws DataAccessException {
+		return petRepository.findPetTypes();
+	}
+
+	@Override
+	public void savePetType(PetType petType) throws DataAccessException {
+		petTypeRepository.save(petType);
+	}
+
+	@Override
+	public void deletePetType(PetType petType) throws DataAccessException {
+		petTypeRepository.delete(petType);
 	}
 
 	@Override
